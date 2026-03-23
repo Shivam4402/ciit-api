@@ -31,6 +31,14 @@ public partial class CiitstudContext : DbContext
 
     public virtual DbSet<TbltrainingTopic> TbltrainingTopics { get; set; }
 
+    public virtual DbSet<Tblenquiry> Tblenquiries { get; set; }
+
+    public virtual DbSet<TblenquiryFollowup> TblenquiryFollowups { get; set; }
+
+    public virtual DbSet<TblenquiryFor> TblenquiryFors { get; set; }
+
+    public virtual DbSet<TblleadSource> TblleadSources { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("ciituser");
@@ -205,8 +213,122 @@ public partial class CiitstudContext : DbContext
                 .HasColumnName("topic_name");
         });
 
+        modelBuilder.Entity<Tblenquiry>(entity =>
+        {
+            entity.HasKey(e => e.EnquiryId).HasName("PK__tblenqui__57CC01B3BED7B890");
+
+            entity.ToTable("tblenquiries", "dbo");
+
+            entity.Property(e => e.EnquiryId).HasColumnName("enquiry_id");
+            entity.Property(e => e.BirthDate)
+                .HasColumnType("datetime")
+                .HasColumnName("birth_date");
+            entity.Property(e => e.BranchId).HasColumnName("branch_id");
+            entity.Property(e => e.CandidateName)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("candidate_name");
+            entity.Property(e => e.EmailAddress)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("email_address");
+            entity.Property(e => e.EnquiryDate)
+                .HasColumnType("datetime")
+                .HasColumnName("enquiry_date");
+            entity.Property(e => e.EnquiryFors)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("enquiry_fors");
+            entity.Property(e => e.Gender)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("gender");
+            entity.Property(e => e.InterestedTopics)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("interested_topics");
+            entity.Property(e => e.LeadSources)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("lead_sources");
+            entity.Property(e => e.LocalAddress)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("local_address");
+            entity.Property(e => e.MobileNumber)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("mobile_number");
+            entity.Property(e => e.Qualification)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("qualification");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("status");
+        });
+
+        modelBuilder.Entity<TblenquiryFollowup>(entity =>
+        {
+            entity.HasKey(e => e.FollowupId).HasName("PK__tblenqui__6D23A5A19C0F46A4");
+
+            entity.ToTable("tblenquiry_followups", "dbo");
+
+            entity.Property(e => e.FollowupId).HasColumnName("followup_id");
+            entity.Property(e => e.Description)
+                .IsUnicode(false)
+                .HasColumnName("description");
+            entity.Property(e => e.EnquiryId).HasColumnName("enquiry_id");
+            entity.Property(e => e.FollowUpBy)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("follow_up_by");
+            entity.Property(e => e.FollowUpDate)
+                .HasColumnType("datetime")
+                .HasColumnName("follow_up_date");
+
+            entity.HasOne(d => d.Enquiry).WithMany(p => p.TblenquiryFollowups)
+                .HasForeignKey(d => d.EnquiryId)
+                .HasConstraintName("fkenquid");
+        });
+
+        modelBuilder.Entity<TblenquiryFor>(entity =>
+        {
+            entity.HasKey(e => e.EnquiryForId).HasName("PK__tblenqui__20F32FC1356FE60A");
+
+            entity.ToTable("tblenquiry_for", "dbo");
+
+            entity.Property(e => e.EnquiryForId).HasColumnName("enquiry_for_id");
+            entity.Property(e => e.EnquiryFor)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("enquiry_for");
+            entity.Property(e => e.Flag)
+                .HasDefaultValue(0)
+                .HasColumnName("flag");
+        });
+
+        modelBuilder.Entity<TblleadSource>(entity =>
+        {
+            entity.HasKey(e => e.SourceId).HasName("PK__tbllead___3035A9B6BB52AEF7");
+
+            entity.ToTable("tbllead_sources", "dbo");
+
+            entity.Property(e => e.SourceId).HasColumnName("source_id");
+            entity.Property(e => e.Flag)
+                .HasDefaultValue(0)
+                .HasColumnName("flag");
+            entity.Property(e => e.SourceName)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("source_name");
+        });
+
         OnModelCreatingPartial(modelBuilder);
     }
+
+
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
