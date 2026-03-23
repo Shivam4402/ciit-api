@@ -35,3 +35,18 @@ public partial class Tblenquiry
 
     public virtual ICollection<TblenquiryFollowup> TblenquiryFollowups { get; set; } = new List<TblenquiryFollowup>();
 }
+
+
+public class EnquiryResponseDto
+{
+    public int EnquiryId { get; set; }
+
+    public string? CandidateName { get; set; }
+
+
+    public string? LeadSources { get; set; }
+
+    public string? EnquiryFors { get; set; }
+
+    public string? InterestedTopics { get; set; }
+}
