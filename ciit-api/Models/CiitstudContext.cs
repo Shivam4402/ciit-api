@@ -39,12 +39,6 @@ public partial class CiitstudContext : DbContext
 
     public virtual DbSet<TblleadSource> TblleadSources { get; set; }
 
-    public virtual DbSet<TblEnquiryTopicMap> TblEnquiryTopicMaps { get; set; }
-
-    public virtual DbSet<TblenquiryForMap> TblenquiryForMaps { get; set; }
-
-    public virtual DbSet<TblleadSourcesMap> TblleadSourcesMaps { get; set; }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("ciituser");
@@ -329,36 +323,6 @@ public partial class CiitstudContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("source_name");
-        });
-
-        modelBuilder.Entity<TblEnquiryTopicMap>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__tbl_enqu__3214EC07C5D51606");
-
-            entity.ToTable("tbl_enquiry_topic_map");
-
-            entity.Property(e => e.EnquiryId).HasColumnName("enquiry_id");
-            entity.Property(e => e.TopicId).HasColumnName("topic_id");
-        });
-
-        modelBuilder.Entity<TblenquiryForMap>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__tblenqui__3214EC0711A3C4F3");
-
-            entity.ToTable("tblenquiry_for_map");
-
-            entity.Property(e => e.EnquiryForId).HasColumnName("enquiry_for_id");
-            entity.Property(e => e.EnquiryId).HasColumnName("enquiry_id");
-        });
-
-        modelBuilder.Entity<TblleadSourcesMap>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__tbllead___3214EC07016FA130");
-
-            entity.ToTable("tbllead_sources_map");
-
-            entity.Property(e => e.EnquiryId).HasColumnName("enquiry_id");
-            entity.Property(e => e.SourceId).HasColumnName("source_id");
         });
 
         OnModelCreatingPartial(modelBuilder);

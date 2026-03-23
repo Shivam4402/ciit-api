@@ -38,17 +38,42 @@ Select * from tblenquiry_followups
 
 
 
+Scaffold-DbContext "Server=115.124.106.98;Database=ciitstud_;User Id=ciituser;Password=CIIT#0908;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir 
+TempModels -Table AspNetUsers, AspNetUserRoles, tbltraining_courses, tblbranches, tblenquiries, tbltraining_course_fees, tbltraining_course_topics, tbltraining_topics, tbltopic_contents, tbllead_sources, tblenquiry_for, tblenquiry_followups -force
 
-Scaffold-DbContext "Server=115.124.106.98;Database=ciitstud_;User Id=ciituser;Password=CIIT#0908;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -Table tbllead_sources, tblenquiry_for, tblenquiries, tblenquiry_followups
 
 
-CREATE TABLE TblEnquiryLeadSource
+CREATE TABLE tbllead_sources_map
 (
     Id INT PRIMARY KEY IDENTITY(1,1),
 
-    EnquiryId INT,
-    LeadSourceId INT,
+    enquiry_id INT,
+    source_id INT,
 
-    FOREIGN KEY (EnquiryId) REFERENCES TblEnquiry(EnquiryId),
-    FOREIGN KEY (LeadSourceId) REFERENCES TblLeadSource(LeadSourceId)
+    FOREIGN KEY (enquiry_id) REFERENCES tblenquiries(enquiry_id),
+    FOREIGN KEY (source_id) REFERENCES tbllead_sources(source_id)
 );
+
+CREATE TABLE tblenquiry_for_map
+(
+    Id INT PRIMARY KEY IDENTITY(1,1),
+
+    enquiry_id INT,
+    enquiry_for_id INT,
+
+    FOREIGN KEY (enquiry_id) REFERENCES tblenquiries(enquiry_id),
+    FOREIGN KEY (enquiry_for_id) REFERENCES tblenquiry_for(enquiry_for_id)
+);
+
+CREATE TABLE tbl_enquiry_topic_map
+(
+    Id INT PRIMARY KEY IDENTITY(1,1),
+
+    enquiry_id INT,
+    topic_id INT,
+
+    FOREIGN KEY (enquiry_id) REFERENCES tblenquiries(enquiry_id),
+    FOREIGN KEY (topic_id) REFERENCES tbltraining_topics(topic_id)
+);
+
+
