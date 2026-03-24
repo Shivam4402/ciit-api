@@ -50,7 +50,7 @@ public class CreateEnquiryDto
     public string? LeadSources { get; set; }
     public string? EnquiryFors { get; set; }
     public string? InterestedTopics { get; set; }
-    public string? Status { get; set; }
+    //public string? Status { get; set; }
     public int? BranchId { get; set; }
 }
 

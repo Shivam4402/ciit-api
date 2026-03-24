@@ -84,6 +84,19 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// ---------- CORS ----------
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy => policy.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
+});
+
+
+builder.WebHost.UseUrls("http://0.0.0.0:5158");
+
 
 var app = builder.Build();
 
@@ -93,6 +106,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 

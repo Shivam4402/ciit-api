@@ -39,6 +39,9 @@ public partial class CiitstudContext : DbContext
 
     public virtual DbSet<TblleadSource> TblleadSources { get; set; }
 
+    public virtual DbSet<Tblqualification> Tblqualifications { get; set; }
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("ciituser");
@@ -323,6 +326,34 @@ public partial class CiitstudContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("source_name");
+        });
+
+        modelBuilder.Entity<Tblqualification>(entity =>
+        {
+            entity.HasKey(e => e.QualificationId).HasName("PK__tblquali__CDACC5DBB1D32B76");
+
+            entity.ToTable("tblqualifications", "dbo");
+
+            entity.HasIndex(e => e.Qualification, "UQ__tblquali__33D617E50FE08E39").IsUnique();
+
+            entity.HasIndex(e => e.Qualification, "UQ__tblquali__33D617E52CC222EE").IsUnique();
+
+            entity.HasIndex(e => e.Qualification, "UQ__tblquali__33D617E54D25B8E6").IsUnique();
+
+            entity.HasIndex(e => e.Qualification, "UQ__tblquali__33D617E584DFAE1B").IsUnique();
+
+            entity.HasIndex(e => e.Qualification, "UQ__tblquali__33D617E5AC2709C3").IsUnique();
+
+            entity.HasIndex(e => e.Qualification, "UQ__tblquali__33D617E5CBF3A920").IsUnique();
+
+            entity.Property(e => e.QualificationId).HasColumnName("qualification_id");
+            entity.Property(e => e.Flag)
+                .HasDefaultValue(0)
+                .HasColumnName("flag");
+            entity.Property(e => e.Qualification)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("qualification");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -9,3 +9,18 @@ public partial class Tblbranch
 
     public string BranchName { get; set; } = null!;
 }
+
+public class CreateBranchDto
+{
+    public string BranchName { get; set; } = null!;
+}
+
+public class UpdateBranchDto : CreateBranchDto
+{
+}
+
+public class BranchResponseDto
+{
+    public int BranchId { get; set; }
+    public string BranchName { get; set; } = null!;
+}

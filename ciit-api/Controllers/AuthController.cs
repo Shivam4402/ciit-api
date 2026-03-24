@@ -24,24 +24,52 @@ namespace ciit_api.Controllers
         }
 
         [AllowAnonymous]
+
+        //[HttpPost("login")]
+        //public async Task<IActionResult> Login(LoginDto dto)
+        //{
+        //    var user = await _context.AspNetUsers
+        //        .FirstOrDefaultAsync(u => u.UserName == dto.UserName);
+
+        //    if (user == null)
+        //        return Unauthorized("Invalid credentials");
+
+        //    if (user.Email != dto.Email)
+        //        return Unauthorized("Invalid credentials");
+
+        //    var token = GenerateJwtToken(user);
+
+        //    return Ok(new
+        //    {
+        //        Token = token
+        //    });
+        //}
+
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
+            Console.WriteLine($"Incoming: {dto.UserName}, {dto.Email}");
+
             var user = await _context.AspNetUsers
                 .FirstOrDefaultAsync(u => u.UserName == dto.UserName);
 
             if (user == null)
+            {
+                Console.WriteLine("User not found");
                 return Unauthorized("Invalid credentials");
+            }
 
             if (user.Email != dto.Email)
+            {
+                Console.WriteLine("Email mismatch");
                 return Unauthorized("Invalid credentials");
+            }
+
+            Console.WriteLine("Login success");
 
             var token = GenerateJwtToken(user);
 
-            return Ok(new
-            {
-                Token = token
-            });
+            return Ok(new { Token = token });
         }
 
         private string GenerateJwtToken(AspNetUser user)

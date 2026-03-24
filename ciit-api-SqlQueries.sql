@@ -8,6 +8,11 @@ select * from tbltraining_course_topics
 select * from tbltraining_course_fees
 select * from tblenquiries
 
+select * from tblqualifications
+
+DELETE FROM tblenquiries WHERE enquiry_id = 2314
+
+
 
 select * from tblbranches
 select * from tbltraining_courses
@@ -38,9 +43,7 @@ Select * from tblenquiry_followups
 
 
 
-Scaffold-DbContext "Server=115.124.106.98;Database=ciitstud_;User Id=ciituser;Password=CIIT#0908;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir 
-TempModels -Table AspNetUsers, AspNetUserRoles, tbltraining_courses, tblbranches, tblenquiries, tbltraining_course_fees, tbltraining_course_topics, tbltraining_topics, tbltopic_contents, tbllead_sources, tblenquiry_for, tblenquiry_followups -force
-
+Scaffold-DbContext "Server=115.124.106.98;Database=ciitstud_;User Id=ciituser;Password=CIIT#0908;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir TempModels -Table AspNetUsers, AspNetUserRoles, tbltraining_courses, tblbranches, tblenquiries, tbltraining_course_fees, tbltraining_course_topics, tbltraining_topics, tbltopic_contents, tbllead_sources, tblenquiry_for, tblenquiry_followups, tblqualifications -force
 
 
 CREATE TABLE tbllead_sources_map
@@ -77,3 +80,4 @@ CREATE TABLE tbl_enquiry_topic_map
 );
 
 
+SELECT UserName, Email FROM AspNetUsers

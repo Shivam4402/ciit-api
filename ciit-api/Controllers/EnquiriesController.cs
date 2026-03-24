@@ -89,51 +89,51 @@ namespace ciit_api.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateEnquiry([FromBody] CreateEnquiryDto dto)
-        {
-            if (!ModelState.IsValid)
+            [HttpPost]
+            public async Task<IActionResult> CreateEnquiry([FromBody] CreateEnquiryDto dto)
             {
-                return ApiResponse(false, "Validation failed",
-                    errors: ModelState.Values.SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage).ToList(),
-                    statusCode: 400);
-            }
-
-            try
-            {
-                var entity = new Tblenquiry
+                if (!ModelState.IsValid)
                 {
-                    EnquiryDate = dto.EnquiryDate ?? DateTime.UtcNow,
-                    CandidateName = dto.CandidateName,
-                    Gender = dto.Gender,
-                    LocalAddress = dto.LocalAddress,
-                    EmailAddress = dto.EmailAddress,
-                    MobileNumber = dto.MobileNumber,
-                    BirthDate = dto.BirthDate,
-                    Qualification = dto.Qualification,
-                    LeadSources = dto.LeadSources,
-                    EnquiryFors = dto.EnquiryFors,
-                    InterestedTopics = dto.InterestedTopics,
-                    Status = dto.Status,
-                    BranchId = dto.BranchId
-                };
+                    return ApiResponse(false, "Validation failed",
+                        errors: ModelState.Values.SelectMany(v => v.Errors)
+                            .Select(e => e.ErrorMessage).ToList(),
+                        statusCode: 400);
+                }
 
-                _context.Tblenquiries.Add(entity);
-                await _context.SaveChangesAsync();
-
-                return ApiResponse(true, "Enquiry created successfully", new
+                try
                 {
-                    entity.EnquiryId,
-                    entity.CandidateName
-                }, statusCode: 201);
+                    var entity = new Tblenquiry
+                    {
+                        EnquiryDate = dto.EnquiryDate ?? DateTime.UtcNow,
+                        CandidateName = dto.CandidateName,
+                        Gender = dto.Gender,
+                        LocalAddress = dto.LocalAddress,
+                        EmailAddress = dto.EmailAddress,
+                        MobileNumber = dto.MobileNumber,
+                        BirthDate = dto.BirthDate,
+                        Qualification = dto.Qualification,
+                        LeadSources = dto.LeadSources,
+                        EnquiryFors = dto.EnquiryFors,
+                        InterestedTopics = dto.InterestedTopics,
+                        Status = "Enquiry Submitted",
+                        BranchId = dto.BranchId
+                    };
+
+                    _context.Tblenquiries.Add(entity);
+                    await _context.SaveChangesAsync();
+
+                    return ApiResponse(true, "Enquiry created successfully", new
+                    {
+                        entity.EnquiryId,
+                        entity.CandidateName
+                    }, statusCode: 201);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in CreateEnquiry");
+                    return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in CreateEnquiry");
-                return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
-            }
-        }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEnquiry(int id, [FromBody] UpdateEnquiryDto dto)
@@ -165,7 +165,7 @@ namespace ciit_api.Controllers
                 entity.LeadSources = dto.LeadSources;
                 entity.EnquiryFors = dto.EnquiryFors;
                 entity.InterestedTopics = dto.InterestedTopics;
-                entity.Status = dto.Status;
+                entity.Status = "Enquiry Updated";
                 entity.BranchId = dto.BranchId;
 
                 await _context.SaveChangesAsync();
