@@ -34,6 +34,8 @@ public partial class Tblenquiry
     public int? BranchId { get; set; }
 
     public virtual ICollection<TblenquiryFollowup> TblenquiryFollowups { get; set; } = new List<TblenquiryFollowup>();
+
+    public virtual Tblbranch Branch { get; set; }
 }
 
 
@@ -73,4 +75,6 @@ public class EnquiryResponseDto
     public string? InterestedTopics { get; set; }
     public string? Status { get; set; }
     public int? BranchId { get; set; }
+    public string? BranchName { get; set; }
+
 }

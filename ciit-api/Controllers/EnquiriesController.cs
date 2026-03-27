@@ -39,7 +39,8 @@ namespace ciit_api.Controllers
                         EnquiryFors = x.EnquiryFors,
                         InterestedTopics = x.InterestedTopics,
                         Status = x.Status,
-                        BranchId = x.BranchId
+                        BranchId = x.BranchId,
+                        BranchName = x.Branch.BranchName
                     })
                     .ToListAsync();
 

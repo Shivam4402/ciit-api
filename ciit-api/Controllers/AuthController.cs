@@ -1,6 +1,7 @@
 ﻿using ciit_api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -25,30 +26,10 @@ namespace ciit_api.Controllers
 
         [AllowAnonymous]
 
-        //[HttpPost("login")]
-        //public async Task<IActionResult> Login(LoginDto dto)
-        //{
-        //    var user = await _context.AspNetUsers
-        //        .FirstOrDefaultAsync(u => u.UserName == dto.UserName);
-
-        //    if (user == null)
-        //        return Unauthorized("Invalid credentials");
-
-        //    if (user.Email != dto.Email)
-        //        return Unauthorized("Invalid credentials");
-
-        //    var token = GenerateJwtToken(user);
-
-        //    return Ok(new
-        //    {
-        //        Token = token
-        //    });
-        //}
-
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
-            Console.WriteLine($"Incoming: {dto.UserName}, {dto.Email}");
+            Console.WriteLine($"Incoming: {dto.UserName}");
 
             var user = await _context.AspNetUsers
                 .FirstOrDefaultAsync(u => u.UserName == dto.UserName);
@@ -59,9 +40,19 @@ namespace ciit_api.Controllers
                 return Unauthorized("Invalid credentials");
             }
 
-            if (user.Email != dto.Email)
+            // Create password hasher
+            var passwordHasher = new PasswordHasher<AspNetUser>();
+
+            // Verify hashed password
+            var result = passwordHasher.VerifyHashedPassword(
+                user,
+                user.PasswordHash,
+                dto.Password
+            );
+
+            if (result == PasswordVerificationResult.Failed)
             {
-                Console.WriteLine("Email mismatch");
+                Console.WriteLine("Password mismatch");
                 return Unauthorized("Invalid credentials");
             }
 
