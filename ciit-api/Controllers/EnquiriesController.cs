@@ -1,4 +1,5 @@
-﻿using ciit_api.Models;
+﻿using ciit_api.DTOs.Enquiry;
+using ciit_api.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

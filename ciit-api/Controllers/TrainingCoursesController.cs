@@ -1,4 +1,8 @@
-﻿using ciit_api.Models;
+﻿using ciit_api.DTOs.Course;
+using ciit_api.DTOs.CourseFee;
+using ciit_api.DTOs.Topic;
+using ciit_api.DTOs.TopicContents;
+using ciit_api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

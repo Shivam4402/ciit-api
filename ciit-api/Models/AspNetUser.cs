@@ -41,9 +41,3 @@ public partial class AspNetUser
 
     public virtual ICollection<AspNetUserRole> AspNetUserRoles { get; set; } = new List<AspNetUserRole>();
 }
-
-public class LoginDto
-{
-    public string UserName { get; set; } = null!;
-    public string Password { get; set; } = null!;
-}

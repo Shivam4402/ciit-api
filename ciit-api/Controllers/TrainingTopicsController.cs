@@ -1,4 +1,6 @@
-﻿using ciit_api.Models;
+﻿using ciit_api.DTOs.Topic;
+using ciit_api.DTOs.TopicContents;
+using ciit_api.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
