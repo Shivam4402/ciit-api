@@ -64,6 +64,45 @@ namespace ciit_api.Controllers
             return Ok(new { Token = token });
         }
 
+
+        [AllowAnonymous]
+        [HttpPost("student-login")]
+        public async Task<IActionResult> StudentLogin([FromBody] StudentLoginDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.UserName) || string.IsNullOrWhiteSpace(dto.Password))
+                return BadRequest("UserName and Password are required");
+
+            var student = await _context.TblstudentDetails
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s =>
+                    s.Flag == 0 &&
+                    (s.PermanentIdentificationNumber == dto.UserName || s.EmailAddress == dto.UserName));
+
+            if (student == null)
+                return Unauthorized("Invalid credentials");
+
+            if (!string.Equals(student.Password, dto.Password, StringComparison.Ordinal))
+                return Unauthorized("Invalid credentials");
+
+            var token = GenerateStudentJwtToken(student);
+
+            return Ok(new
+            {
+                Token = token,
+                Student = new
+                {
+                    student.StudentId,
+                    student.StudentName,
+                    student.LastName,
+                    student.EmailAddress,
+                    student.MobileNumber,
+                    student.ProfilePhoto,
+                    student.StudentCode,
+                    student.BranchId
+                }
+            });
+        }
+
         private string GenerateJwtToken(AspNetUser user)
         {
             var jwtSettings = _config.GetSection("Jwt");
@@ -74,6 +113,35 @@ namespace ciit_api.Controllers
             new Claim(ClaimTypes.Email, user.Email ?? ""),
             new Claim(ClaimTypes.Name, user.UserName ?? "")
         };
+
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtSettings["Key"]));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: jwtSettings["Issuer"],
+                audience: jwtSettings["Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(
+                    Convert.ToDouble(jwtSettings["DurationInMinutes"])),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private string GenerateStudentJwtToken(TblstudentDetail student)
+        {
+            var jwtSettings = _config.GetSection("Jwt");
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, student.StudentId.ToString()),
+                new Claim(ClaimTypes.Email, student.EmailAddress),
+                new Claim("actor", "student"),
+                new Claim(ClaimTypes.Name, $"{student.StudentName ?? ""} {student.LastName ?? ""}".Trim())
+            };
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtSettings["Key"]));
