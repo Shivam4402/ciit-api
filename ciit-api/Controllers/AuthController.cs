@@ -74,6 +74,7 @@ namespace ciit_api.Controllers
 
             var student = await _context.TblstudentDetails
                 .AsNoTracking()
+                .Include(s => s.Branch)
                 .FirstOrDefaultAsync(s =>
                     s.Flag == 0 &&
                     (s.PermanentIdentificationNumber == dto.UserName || s.EmailAddress == dto.UserName));
@@ -98,7 +99,8 @@ namespace ciit_api.Controllers
                     student.MobileNumber,
                     student.ProfilePhoto,
                     student.StudentCode,
-                    student.BranchId
+                    student.BranchId,
+                    student.Branch?.BranchName
                 }
             });
         }

@@ -1,4 +1,6 @@
 using ciit_api.Models;
+using ciit_api.Services.Implementations;
+using ciit_api.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -14,6 +16,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddSwaggerGen();
+
+
 
 // ---------- Swagger ----------
 builder.Services.AddSwaggerGen(c =>
@@ -49,6 +53,10 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+// ---------- Services ----------
+builder.Services.AddScoped<IStudentService, StudentService>();
+
 
 // ---------- Database ----------
 builder.Services.AddDbContext<CiitstudContext>(options =>
