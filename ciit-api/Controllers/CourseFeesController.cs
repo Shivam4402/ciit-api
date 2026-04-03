@@ -1,8 +1,12 @@
 ﻿using ciit_api.DTOs.CourseFee;
 using ciit_api.Models;
+using iText.Layout.Element;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.IO.Image;
 
 namespace ciit_api.Controllers
 {
@@ -102,7 +106,7 @@ namespace ciit_api.Controllers
                     FeesAmount = dto.FeesAmount,
                     Gst = dto.Gst,
                     FeeMode = dto.FeeMode,
-                    FeesChangeDate=DateOnly.FromDateTime(DateTime.UtcNow),
+                    FeesChangeDate = DateOnly.FromDateTime(DateTime.UtcNow),
                     Flag = 0
                 };
 
@@ -182,6 +186,101 @@ namespace ciit_api.Controllers
             {
                 _logger.LogError(ex, "Error in DeleteFee {Id}", id);
                 return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
+            }
+        }
+
+
+        [HttpPost("generate-fee-invoice")]
+        public IActionResult GenerateFeeInvoice([FromBody] CourseFeePdfDto dto)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                var writer = new iText.Kernel.Pdf.PdfWriter(stream);
+                var pdf = new iText.Kernel.Pdf.PdfDocument(writer);
+                var document = new iText.Layout.Document(pdf);
+
+                // 🔹 LOGO
+                var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/mainlogo.png");
+                if (System.IO.File.Exists(logoPath))
+                {
+                    var image = new iText.Layout.Element.Image(
+                        iText.IO.Image.ImageDataFactory.Create(logoPath))
+                        .ScaleToFit(100, 100);
+                    document.Add(image);
+                }
+
+                // 🔹 COMPANY NAME
+                document.Add(new Paragraph("CIIT Institute").SimulateBold().SetFontSize(18));
+
+                document.Add(new Paragraph("Pune, India | +91-XXXXXXXXXX"));
+
+                document.Add(new Paragraph("\n"));
+
+                // 🔹 INVOICE HEADER
+                document.Add(new Paragraph("FEE INVOICE")
+                    .SimulateBold().SetFontSize(16));
+
+                document.Add(new Paragraph($"Date: {DateTime.Now:dd MMM yyyy}"));
+                document.Add(new Paragraph($"Student: {dto.StudentName}"));
+
+                document.Add(new Paragraph("\n"));
+
+                // 🔹 COURSE INFO
+                document.Add(new Paragraph($"Course: {dto.CourseName}"));
+                document.Add(new Paragraph($"Registration Date: {dto.RegistrationDate}"));
+                document.Add(new Paragraph($"Status: {dto.Status}"));
+
+                document.Add(new Paragraph("\n"));
+
+                // 🔹 FEE TABLE
+                var feeTable = new Table(5);
+                feeTable.AddHeaderCell("Total");
+                feeTable.AddHeaderCell("Discount");
+                feeTable.AddHeaderCell("Payable");
+                feeTable.AddHeaderCell("Paid");
+                feeTable.AddHeaderCell("Due");
+
+                feeTable.AddCell(dto.TotalFee.ToString("C"));
+                feeTable.AddCell(dto.Discount.ToString("C"));
+                feeTable.AddCell(dto.PayableFee.ToString("C"));
+                feeTable.AddCell(dto.PaidFee.ToString("C"));
+                feeTable.AddCell(dto.DueFee.ToString("C"));
+
+                document.Add(feeTable);
+
+                document.Add(new Paragraph("\n"));
+
+                // 🔹 PAYMENT HISTORY TABLE
+                document.Add(new Paragraph("Payment History").SimulateBold());
+
+                var paymentTable = new Table(3);
+                paymentTable.AddHeaderCell("Date");
+                paymentTable.AddHeaderCell("Mode");
+                paymentTable.AddHeaderCell("Amount");
+
+                foreach (var p in dto.Payments)
+                {
+                    paymentTable.AddCell(p.PaymentDate);
+                    paymentTable.AddCell(p.PaymentMode);
+                    paymentTable.AddCell(p.Amount.ToString("C"));
+                }
+
+                document.Add(paymentTable);
+
+                document.Add(new Paragraph("\n"));
+
+                // 🔹 SUMMARY
+                document.Add(new Paragraph($"Total Paid: {dto.PaidFee:C}").SimulateBold());
+                document.Add(new Paragraph($"Outstanding Due: {dto.DueFee:C}")
+                    .SimulateBold()
+                    .SetFontColor(iText.Kernel.Colors.ColorConstants.RED));
+
+                document.Close();
+
+                var pdfBytes = stream.ToArray();
+                var base64 = Convert.ToBase64String(pdfBytes);
+
+                return Ok(base64);
             }
         }
     }
