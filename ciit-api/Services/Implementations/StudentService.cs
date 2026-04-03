@@ -113,5 +113,54 @@ namespace ciit_api.Services.Implementations
 
             return list;
         }
+
+
+        public async Task<List<StudentBatchExamDto>> GetStudentWiseBatchExams(int registrationId)
+        {
+            var list = new List<StudentBatchExamDto>();
+
+            using (SqlConnection con = new SqlConnection(_config.GetConnectionString("DefaultConnection")))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_fetch_student_wise_batch_exams", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@registration_id", SqlDbType.Int).Value = registrationId;
+
+                    await con.OpenAsync();
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            list.Add(new StudentBatchExamDto
+                            {
+                                ExamId = Convert.ToInt32(reader["exam_id"]),
+                                RegistrationId = Convert.ToInt32(reader["registration_id"]),
+
+                                StudentId = Convert.ToInt32(reader["student_id"]),
+                                StudentName = reader["student_name"].ToString(),
+
+                                TopicId = Convert.ToInt32(reader["topic_id"]),
+                                TopicName = reader["topic_name"].ToString(),
+
+                                BatchId = Convert.ToInt32(reader["batch_id"]),
+                                BatchName = reader["batch_name"].ToString(),
+
+                                ExamDate = reader["exam_date"] == DBNull.Value ? null : Convert.ToDateTime(reader["exam_date"]),
+
+                                StartTime = reader["start_time"]?.ToString(),
+                                EndTime = reader["end_time"]?.ToString(),
+
+                                TotalQuestions = Convert.ToInt32(reader["total_questions"]),
+
+                                IsAttended = Convert.ToInt32(reader["is_attended"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
     }
 }

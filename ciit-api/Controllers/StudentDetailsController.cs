@@ -274,5 +274,28 @@ namespace ciit_api.Controllers
                 return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
             }
         }
+
+
+        [HttpGet("student-batch-exams/{registrationId}")]
+        public async Task<IActionResult> GetStudentWiseBatchExams(int registrationId)
+        {
+            try
+            {
+                if (registrationId <= 0)
+                    return ApiResponse(false, "Invalid registration id", statusCode: 400);
+
+                var result = await _studentService.GetStudentWiseBatchExams(registrationId);
+
+                if (result == null || result.Count == 0)
+                    return ApiResponse(false, "No exams found for this student", data: result, statusCode: 404);
+
+                return ApiResponse(true, "Student batch exams fetched successfully", result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetStudentWiseBatchExams");
+                return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
+            }
+        }
     }
 }

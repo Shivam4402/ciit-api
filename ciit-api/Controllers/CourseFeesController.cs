@@ -278,7 +278,7 @@ namespace ciit_api.Controllers
                 document.Close();
 
                 var pdfBytes = stream.ToArray();
-                var base64 = Convert.ToBase64String(pdfBytes);
+                var base64 = Convert.ToBase64String(pdfBytes);  
 
                 return Ok(base64);
             }

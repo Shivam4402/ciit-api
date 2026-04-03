@@ -6,6 +6,7 @@ namespace ciit_api.Services.Interfaces
     {
         Task<List<StudentBatchDetailsDto>> GetStudentWiseBatchDetails(int studentId);
         Task<List<StudentAttendanceDto>> GetStudentBatchWiseAttendance(int batchId, int registrationId);
+        Task<List<StudentBatchExamDto>> GetStudentWiseBatchExams(int registrationId);
 
     }
 }
