@@ -4,9 +4,25 @@ select * from INFORMATION_SCHEMA.Tables;
 
 SELECT *
 FROM sys.procedures
-WHERE name LIKE '%batch%';
+WHERE name LIKE '%exam%';
+
+select * from INFORMATION_SCHEMA.Tables WHere TABLE_NAME Like '%batch%';
+
+select * from tblbatch_students;
+select * from tblbatches;
 
 
+EXEC sp_helptext 'sp_fetch_student_wise_batch_exams'
+create procedure [dbo].[sp_fetch_student_wise_batch_exams](@registration_id int)  
+as  
+begin  
+select exam_id,r.registration_id,s.student_id,student_name,tp.topic_id,topic_name,b.batch_id,batch_name,  
+exam_date,start_time,end_time,total_questions,is_attended  
+from tblstudent_registrations r join tblstudent_batch_exams bm on r.registration_id=bm.registration_id  
+join tblstudent_details s on s.student_id =r.student_id  
+join tblbatches b on b.batch_id=bm.batch_id  
+join tbltraining_topics tp on b.topic_id =tp.topic_id where r.registration_id=348;  
+end;  
 
 SELECT *
 FROM sys.procedures
@@ -52,14 +68,6 @@ join tblbatch_schedule_attendance bsa on bsd.batch_schedule_id=bsa.batch_schedul
 where  b.batch_id=@batch_id  and actual_date is not null and   r.registration_id=@registration_id  
   
 end  
-
-
-
-
-
-
-
-
 
 
 
