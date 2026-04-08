@@ -199,6 +199,7 @@ namespace ciit_api.Controllers
                 var pdf = new iText.Kernel.Pdf.PdfDocument(writer);
                 var document = new iText.Layout.Document(pdf);
 
+
                 // 🔹 LOGO
                 var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/mainlogo.png");
                 if (System.IO.File.Exists(logoPath))
@@ -221,11 +222,11 @@ namespace ciit_api.Controllers
                     .SimulateBold().SetFontSize(16));
 
                 document.Add(new Paragraph($"Date: {DateTime.Now:dd MMM yyyy}"));
-                document.Add(new Paragraph($"Student: {dto.StudentName}"));
 
                 document.Add(new Paragraph("\n"));
 
                 // 🔹 COURSE INFO
+                document.Add(new Paragraph($"Student: {dto.StudentName}"));
                 document.Add(new Paragraph($"Course: {dto.CourseName}"));
                 document.Add(new Paragraph($"Registration Date: {dto.RegistrationDate}"));
                 document.Add(new Paragraph($"Status: {dto.Status}"));
@@ -240,11 +241,11 @@ namespace ciit_api.Controllers
                 feeTable.AddHeaderCell("Paid");
                 feeTable.AddHeaderCell("Due");
 
-                feeTable.AddCell(dto.TotalFee.ToString("C"));
-                feeTable.AddCell(dto.Discount.ToString("C"));
-                feeTable.AddCell(dto.PayableFee.ToString("C"));
-                feeTable.AddCell(dto.PaidFee.ToString("C"));
-                feeTable.AddCell(dto.DueFee.ToString("C"));
+                feeTable.AddCell("RS " + dto.TotalFee.ToString("N0"));
+                feeTable.AddCell("RS " + dto.Discount.ToString("N0"));
+                feeTable.AddCell("RS " + dto.PayableFee.ToString("N0"));
+                feeTable.AddCell("RS " + dto.PaidFee.ToString("N0"));
+                feeTable.AddCell("RS " + dto.DueFee.ToString("N0"));
 
                 document.Add(feeTable);
 
@@ -262,7 +263,7 @@ namespace ciit_api.Controllers
                 {
                     paymentTable.AddCell(p.PaymentDate);
                     paymentTable.AddCell(p.PaymentMode);
-                    paymentTable.AddCell(p.Amount.ToString("C"));
+                    paymentTable.AddCell("RS " + p.Amount.ToString("N0"));
                 }
 
                 document.Add(paymentTable);
@@ -270,8 +271,8 @@ namespace ciit_api.Controllers
                 document.Add(new Paragraph("\n"));
 
                 // 🔹 SUMMARY
-                document.Add(new Paragraph($"Total Paid: {dto.PaidFee:C}").SimulateBold());
-                document.Add(new Paragraph($"Outstanding Due: {dto.DueFee:C}")
+                document.Add(new Paragraph($"Total Paid: {"RS " + dto.PaidFee.ToString("N0")}").SimulateBold());
+                document.Add(new Paragraph($"Outstanding Due: {"RS " + dto.DueFee.ToString("N0")}")
                     .SimulateBold()
                     .SetFontColor(iText.Kernel.Colors.ColorConstants.RED));
 
