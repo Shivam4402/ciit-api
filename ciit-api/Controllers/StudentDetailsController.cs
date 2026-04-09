@@ -10,7 +10,7 @@ namespace ciit_api.Controllers
     [Route("api/students")]
     [ApiController]
     public class StudentDetailsController : BaseApiController
-    {
+    {  
         private readonly CiitstudContext _context;
         private readonly IStudentService _studentService;
         private readonly ILogger<StudentDetailsController> _logger;
@@ -294,6 +294,71 @@ namespace ciit_api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetStudentWiseBatchExams");
+                return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
+            }
+        }
+
+
+        [HttpGet("student-course-topics/{registrationId}")]
+        public async Task<IActionResult> GetStudentWiseCourseTopics(int registrationId)
+        {
+            try
+            {
+                if (registrationId <= 0)
+                    return ApiResponse(false, "Invalid registration id", statusCode: 400);
+
+                var registration = await _context.TblstudentRegistrations
+                    .AsNoTracking()
+                    .Where(r => r.RegistrationId == registrationId
+                                && r.Flag == 0
+                                && r.Student != null
+                                && r.Student.Flag == 0)
+                    .Select(r => new
+                    {
+                        r.RegistrationId,
+                        r.StudentId,
+                        StudentName = r.Student!.StudentName,
+                        CourseId = r.Fee != null ? r.Fee.CourseId : null,
+                        CourseName = r.Fee != null && r.Fee.Course != null ? r.Fee.Course.CourseName : null
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (registration == null)
+                    return ApiResponse(false, "Registration not found", statusCode: 404);
+
+                if (registration.CourseId == null)
+                    return ApiResponse(false, "No course mapped with this registration", statusCode: 404);
+
+                var topics = await _context.TbltrainingCourseTopics
+                    .AsNoTracking()
+                    .Where(ct => ct.CourseId == registration.CourseId
+                                 && ct.Flag == 0
+                                 && ct.Topic != null
+                                 && ct.Topic.Flag == 0)
+                    .OrderBy(ct => ct.CourseTopicId)
+                    .Select(ct => new
+                    {
+                        ct.CourseTopicId,
+                        ct.CourseId,
+                        ct.TopicId,
+                        TopicName = ct.Topic!.TopicName,
+                        PublicFolderId = ct.Topic.Publicfolderid
+                    })
+                    .ToListAsync();
+
+                return ApiResponse(true, "Registration wise course topics fetched successfully", new
+                {
+                    registration.RegistrationId,
+                    registration.StudentId,
+                    registration.StudentName,
+                    registration.CourseId,
+                    registration.CourseName,
+                    Topics = topics
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetStudentWiseCourseTopics {RegistrationId}", registrationId);
                 return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
             }
         }

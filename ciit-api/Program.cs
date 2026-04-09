@@ -56,6 +56,7 @@ builder.Services.AddSwaggerGen(c =>
 
 // ---------- Services ----------
 builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddHttpClient<IVimeoService, VimeoService>();
 
 
 // ---------- Database ----------

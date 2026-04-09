@@ -4,7 +4,11 @@ select * from INFORMATION_SCHEMA.Tables;
 
 SELECT *
 FROM sys.procedures
-WHERE name LIKE '%exam%';
+WHERE name LIKE '%fetch_student%'
+
+
+
+EXEC sp_helptext 'sp_fetch_studentswithcoursetopics'
 
 select * from INFORMATION_SCHEMA.Tables WHere TABLE_NAME Like '%batch%';
 
@@ -21,7 +25,7 @@ exam_date,start_time,end_time,total_questions,is_attended
 from tblstudent_registrations r join tblstudent_batch_exams bm on r.registration_id=bm.registration_id  
 join tblstudent_details s on s.student_id =r.student_id  
 join tblbatches b on b.batch_id=bm.batch_id  
-join tbltraining_topics tp on b.topic_id =tp.topic_id where r.registration_id=348;  
+join tbltraining_topics tp on b.topic_id =tp.topic_id where r.registration_id=@registration_id;  
 end;  
 
 SELECT *
@@ -108,10 +112,11 @@ topic wise contents
 Select * from tbllead_sources
 Select * from tblenquiry_for
 Select * from tbltraining_topics
+Insert into tbltraining_topics values ('Sql Server', 0, '28848683');
 Select * from tblenquiries
 Select * from tblenquiry_followups
 
-
+EXEC sp_columns tblbranches;
 
 
 Scaffold-DbContext "Server=115.124.106.98;Database=ciitstud_;User Id=ciituser;Password=CIIT#0908;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -Table AspNetUsers, AspNetUserRoles, tbltraining_courses, tblbranches, tblenquiries, tbltraining_course_fees, tbltraining_course_topics, tbltraining_topics, tbltopic_contents, tbllead_sources, tblenquiry_for, tblenquiry_followups, tblqualifications, tblstudent_details, tblstudent_registrations, tblstudent_qualifications, tblstudent_payments -force
