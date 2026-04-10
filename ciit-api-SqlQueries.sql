@@ -113,6 +113,7 @@ Select * from tbllead_sources
 Select * from tblenquiry_for
 Select * from tbltraining_topics
 Insert into tbltraining_topics values ('Sql Server', 0, '28848683');
+UPDATE tbltraining_topics SET publicfolderid = '28848683' WHERE topic_id = 18
 Select * from tblenquiries
 Select * from tblenquiry_followups
 
