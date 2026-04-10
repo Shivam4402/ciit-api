@@ -59,6 +59,9 @@ builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddHttpClient<IVimeoService, VimeoService>();
 
 
+builder.Services.AddMemoryCache();
+
+
 // ---------- Database ----------
 builder.Services.AddDbContext<CiitstudContext>(options =>
     options.UseSqlServer(
@@ -104,7 +107,7 @@ builder.Services.AddCors(options =>
 });
 
 
-//builder.WebHost.UseUrls("http://0.0.0.0:5158");
+builder.WebHost.UseUrls("http://0.0.0.0:5158");
 
 
 var app = builder.Build();
