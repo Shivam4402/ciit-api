@@ -10,16 +10,19 @@ namespace ciit_api.Controllers
     [Route("api/students")]
     [ApiController]
     public class StudentDetailsController : BaseApiController
-    {  
+    {
         private readonly CiitstudContext _context;
         private readonly IStudentService _studentService;
         private readonly ILogger<StudentDetailsController> _logger;
+        private readonly IWebHostEnvironment _env;
 
-        public StudentDetailsController(CiitstudContext context, IStudentService studentService, ILogger<StudentDetailsController> logger)
+
+        public StudentDetailsController(CiitstudContext context, IStudentService studentService, ILogger<StudentDetailsController> logger, IWebHostEnvironment env)
         {
             _context = context;
             _studentService = studentService;
             _logger = logger;
+            _env = env;
         }
 
         [HttpGet("details")]
@@ -362,5 +365,88 @@ namespace ciit_api.Controllers
                 return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
             }
         }
+
+
+
+        [HttpPost("student-change-profile-photo-upload/{studentId:int}")]
+        [Consumes("multipart/form-data")]
+        [RequestSizeLimit(5 * 1024 * 1024)]
+        public async Task<IActionResult> StudentChangeProfilePhotoUpload(int studentId, IFormFile profilePhoto)
+        {
+            try
+            {
+                if (studentId <= 0)
+                    return ApiResponse(false, "Invalid student id", statusCode: 400);
+
+                if (profilePhoto == null || profilePhoto.Length == 0)
+                    return ApiResponse(false, "ProfilePhoto is required", statusCode: 400);
+
+                var ext = Path.GetExtension(profilePhoto.FileName).ToLowerInvariant();
+                var allowedExt = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                if (!allowedExt.Contains(ext))
+                    return ApiResponse(false, "Only .jpg, .jpeg, .png, .webp files are allowed", statusCode: 400);
+
+                var student = await _context.TblstudentDetails
+                    .FirstOrDefaultAsync(s => s.Flag == 0 && s.StudentId == studentId);
+
+                if (student == null)
+                    return ApiResponse(false, "Student not found", statusCode: 404);
+
+                var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var uploadsRoot = Path.Combine(webRoot, "uploads", "students");
+                Directory.CreateDirectory(uploadsRoot);
+
+                var fileName = $"student_{student.StudentId}_{DateTime.UtcNow:yyyyMMddHHmmssfff}{ext}";
+                var filePath = Path.Combine(uploadsRoot, fileName);
+
+                await using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await profilePhoto.CopyToAsync(stream);
+                }
+
+
+                if (!string.IsNullOrEmpty(student.ProfilePhoto))
+                {
+                    try
+                    {
+                        var oldImageUrl = student.ProfilePhoto;
+
+                        if (Uri.TryCreate(oldImageUrl, UriKind.Absolute, out var uri))
+                        {
+                            var relativePath = uri.AbsolutePath.TrimStart('/');
+                            var oldFilePath = Path.Combine(webRoot, relativePath.Replace("/", Path.DirectorySeparatorChar.ToString()));
+
+                            if (System.IO.File.Exists(oldFilePath))
+                            {
+                                System.IO.File.Delete(oldFilePath);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to delete old profile photo for StudentId {StudentId}", studentId);
+                    }
+                }
+
+                var request = HttpContext.Request;
+                var baseUrl = $"{request.Scheme}://{request.Host}";
+
+                student.ProfilePhoto = $"{baseUrl}/uploads/students/{fileName}";
+                await _context.SaveChangesAsync();
+
+                return ApiResponse(true, "Profile photo updated successfully", new
+                {
+                    student.StudentId,
+                    student.ProfilePhoto
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in StudentChangeProfilePhotoUpload {StudentId}", studentId);
+                return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
+            }
+        }
     }
 }
+    

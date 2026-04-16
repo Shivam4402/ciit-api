@@ -100,9 +100,46 @@ namespace ciit_api.Controllers
                     student.ProfilePhoto,
                     student.StudentCode,
                     student.BranchId,
-                    student.Branch?.BranchName
+                    student.Branch?.BranchName,
+                    student.PermanentIdentificationNumber
                 }
             });
+        }
+
+
+        [AllowAnonymous]
+        [HttpPost("student-change-password")]
+        public async Task<IActionResult> StudentChangePassword([FromBody] StudentChangePasswordDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.UserName) ||
+                string.IsNullOrWhiteSpace(dto.OldPassword) ||
+                string.IsNullOrWhiteSpace(dto.NewPassword) ||
+                string.IsNullOrWhiteSpace(dto.ConfirmNewPassword))
+            {
+                return BadRequest("UserName, OldPassword, NewPassword, and ConfirmNewPassword are required");
+            }
+
+            if (!string.Equals(dto.NewPassword, dto.ConfirmNewPassword, StringComparison.Ordinal))
+                return BadRequest("NewPassword and ConfirmNewPassword do not match");
+
+            if (string.Equals(dto.OldPassword, dto.NewPassword, StringComparison.Ordinal))
+                return BadRequest("NewPassword must be different from OldPassword");
+
+            var student = await _context.TblstudentDetails
+                .FirstOrDefaultAsync(s =>
+                    s.Flag == 0 &&
+                    (s.PermanentIdentificationNumber == dto.UserName || s.EmailAddress == dto.UserName));
+
+            if (student == null)
+                return Unauthorized("Invalid credentials");
+
+            if (!string.Equals(student.Password, dto.OldPassword, StringComparison.Ordinal))
+                return Unauthorized("Invalid credentials");
+
+            student.Password = dto.NewPassword;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Password changed successfully" });
         }
 
         private string GenerateJwtToken(AspNetUser user)
