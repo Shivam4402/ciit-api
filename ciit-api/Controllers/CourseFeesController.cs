@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using iText.Kernel.Pdf;
 using iText.Layout;
 using iText.IO.Image;
+using iText.Layout.Borders;
 
 namespace ciit_api.Controllers
 {
@@ -189,7 +190,6 @@ namespace ciit_api.Controllers
             }
         }
 
-
         [HttpPost("generate-fee-invoice")]
         public IActionResult GenerateFeeInvoice([FromBody] CourseFeePdfDto dto)
         {
@@ -199,87 +199,167 @@ namespace ciit_api.Controllers
                 var pdf = new iText.Kernel.Pdf.PdfDocument(writer);
                 var document = new iText.Layout.Document(pdf);
 
+                // 🔹 Fonts
+                var boldFont = iText.Kernel.Font.PdfFontFactory.CreateFont(iText.IO.Font.Constants.StandardFonts.HELVETICA_BOLD);
+                var normalFont = iText.Kernel.Font.PdfFontFactory.CreateFont(iText.IO.Font.Constants.StandardFonts.HELVETICA);
 
-                // 🔹 LOGO
+                // 🔹 Colors
+                var primaryColor = new iText.Kernel.Colors.DeviceRgb(33, 150, 243);
+                var lightGray = new iText.Kernel.Colors.DeviceRgb(240, 240, 240);
+                var darkGray = new iText.Kernel.Colors.DeviceRgb(45, 45, 45);
+
+                // ================= HEADER =================
+                var headerTable = new Table(2).UseAllAvailableWidth();
+
+                // Logo
                 var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/mainlogo.png");
                 if (System.IO.File.Exists(logoPath))
                 {
-                    var image = new iText.Layout.Element.Image(
+                    var logo = new iText.Layout.Element.Image(
                         iText.IO.Image.ImageDataFactory.Create(logoPath))
                         .ScaleToFit(100, 100);
-                    document.Add(image);
+
+                    headerTable.AddCell(new Cell().Add(logo).SetBorder(Border.NO_BORDER));
+                }
+                else
+                {
+                    headerTable.AddCell(new Cell().SetBorder(Border.NO_BORDER));
                 }
 
-                // 🔹 COMPANY NAME
-                document.Add(new Paragraph("CIIT Institute").SimulateBold().SetFontSize(18));
+                // Company Details
+                var company = new Paragraph()
+                    .Add(new Text("CIIT Institute\n").SetFont(boldFont).SetFontSize(16))
+                    .Add("Pune, India\n+91-7028565830")
+                    .SetTextAlignment(iText.Layout.Properties.TextAlignment.RIGHT);
 
-                document.Add(new Paragraph("Pune, India | +91-XXXXXXXXXX"));
+                headerTable.AddCell(new Cell().Add(company).SetBorder(Border.NO_BORDER));
 
-                document.Add(new Paragraph("\n"));
-
-                // 🔹 INVOICE HEADER
-                document.Add(new Paragraph("FEE INVOICE")
-                    .SimulateBold().SetFontSize(16));
-
-                document.Add(new Paragraph($"Date: {DateTime.Now:dd MMM yyyy}"));
+                document.Add(headerTable);
 
                 document.Add(new Paragraph("\n"));
 
-                // 🔹 COURSE INFO
-                document.Add(new Paragraph($"Student: {dto.StudentName}"));
-                document.Add(new Paragraph($"Course: {dto.CourseName}"));
-                document.Add(new Paragraph($"Registration Date: {dto.RegistrationDate}"));
-                document.Add(new Paragraph($"Status: {dto.Status}"));
+                // ================= INVOICE TITLE =================
+                var title = new Paragraph("FEE INVOICE")
+                    .SetFont(boldFont)
+                    .SetFontSize(18)
+                    .SetFontColor(darkGray);
+
+                document.Add(title);
+
+                // Invoice Meta
+                var metaTable = new Table(2).UseAllAvailableWidth();
+
+                metaTable.AddCell(new Cell().Add(new Paragraph($"Invoice Date: {DateTime.Now:dd MMM yyyy}"))
+                    .SetBorder(Border.NO_BORDER));
+
+                metaTable.AddCell(new Cell().Add(new Paragraph($"Invoice No: INV-{DateTime.Now.Ticks}"))
+                    .SetTextAlignment(iText.Layout.Properties.TextAlignment.RIGHT)
+                    .SetBorder(Border.NO_BORDER));
+
+                document.Add(metaTable);
 
                 document.Add(new Paragraph("\n"));
 
-                // 🔹 FEE TABLE
-                var feeTable = new Table(5);
-                feeTable.AddHeaderCell("Total");
-                feeTable.AddHeaderCell("Discount");
-                feeTable.AddHeaderCell("Payable");
-                feeTable.AddHeaderCell("Paid");
-                feeTable.AddHeaderCell("Due");
+                // ================= STUDENT INFO =================
+                var infoTable = new Table(2).UseAllAvailableWidth();
 
-                feeTable.AddCell("RS " + dto.TotalFee.ToString("N0"));
-                feeTable.AddCell("RS " + dto.Discount.ToString("N0"));
-                feeTable.AddCell("RS " + dto.PayableFee.ToString("N0"));
-                feeTable.AddCell("RS " + dto.PaidFee.ToString("N0"));
-                feeTable.AddCell("RS " + dto.DueFee.ToString("N0"));
+                infoTable.AddCell(new Cell().Add(new Paragraph($"Student: {dto.StudentName}")).SetBorder(Border.NO_BORDER));
+                infoTable.AddCell(new Cell().Add(new Paragraph($"Course: {dto.CourseName}")).SetBorder(Border.NO_BORDER));
+
+                infoTable.AddCell(new Cell().Add(new Paragraph($"Registration Date: {dto.RegistrationDate}")).SetBorder(Border.NO_BORDER));
+                infoTable.AddCell(new Cell().Add(new Paragraph($"Status: {dto.Status}")).SetBorder(Border.NO_BORDER));
+
+                document.Add(infoTable);
+
+                document.Add(new Paragraph("\n"));
+
+                // ================= FEE TABLE =================
+                var feeTable = new Table(5).UseAllAvailableWidth();
+
+                string[] headers = { "Total", "Discount", "Payable", "Paid", "Due" };
+
+                foreach (var h in headers)
+                {
+                    feeTable.AddHeaderCell(new Cell()
+                        .Add(new Paragraph(h).SetFont(boldFont).SetFontColor(iText.Kernel.Colors.ColorConstants.WHITE))
+                        .SetBackgroundColor(primaryColor)
+                        .SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER));
+                }
+
+                feeTable.AddCell(new Cell().Add(new Paragraph("₹ " + dto.TotalFee.ToString("N0"))).SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER));
+                feeTable.AddCell(new Cell().Add(new Paragraph("₹ " + dto.Discount.ToString("N0"))).SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER));
+                feeTable.AddCell(new Cell().Add(new Paragraph("₹ " + dto.PayableFee.ToString("N0"))).SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER));
+                feeTable.AddCell(new Cell().Add(new Paragraph("₹ " + dto.PaidFee.ToString("N0"))).SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER));
+                feeTable.AddCell(new Cell().Add(new Paragraph("₹ " + dto.DueFee.ToString("N0"))).SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER));
 
                 document.Add(feeTable);
 
                 document.Add(new Paragraph("\n"));
 
-                // 🔹 PAYMENT HISTORY TABLE
-                document.Add(new Paragraph("Payment History").SimulateBold());
+                // ================= PAYMENT HISTORY =================
+                document.Add(new Paragraph("Payment History")
+                    .SetFont(boldFont)
+                    .SetFontSize(14));
 
-                var paymentTable = new Table(3);
-                paymentTable.AddHeaderCell("Date");
-                paymentTable.AddHeaderCell("Mode");
-                paymentTable.AddHeaderCell("Amount");
+                var paymentTable = new Table(3).UseAllAvailableWidth();
+
+                string[] payHeaders = { "Date", "Mode", "Amount" };
+
+                foreach (var h in payHeaders)
+                {
+                    paymentTable.AddHeaderCell(new Cell()
+                        .Add(new Paragraph(h).SetFont(boldFont))
+                        .SetBackgroundColor(lightGray));
+                }
 
                 foreach (var p in dto.Payments)
                 {
                     paymentTable.AddCell(p.PaymentDate);
                     paymentTable.AddCell(p.PaymentMode);
-                    paymentTable.AddCell("RS " + p.Amount.ToString("N0"));
+                    paymentTable.AddCell("₹ " + p.Amount.ToString("N0"));
                 }
 
                 document.Add(paymentTable);
 
                 document.Add(new Paragraph("\n"));
 
-                // 🔹 SUMMARY
-                document.Add(new Paragraph($"Total Paid: {"RS " + dto.PaidFee.ToString("N0")}").SimulateBold());
-                document.Add(new Paragraph($"Outstanding Due: {"RS " + dto.DueFee.ToString("N0")}")
-                    .SimulateBold()
-                    .SetFontColor(iText.Kernel.Colors.ColorConstants.RED));
+                // ================= SUMMARY =================
+                var summaryTable = new Table(2).UseAllAvailableWidth();
+
+                summaryTable.AddCell(new Cell()
+                    .Add(new Paragraph("Total Paid").SetFont(boldFont))
+                    .SetBorder(Border.NO_BORDER));
+
+                summaryTable.AddCell(new Cell()
+                    .Add(new Paragraph("₹ " + dto.PaidFee.ToString("N0")).SetFont(boldFont))
+                    .SetTextAlignment(iText.Layout.Properties.TextAlignment.RIGHT)
+                    .SetBorder(Border.NO_BORDER));
+
+                summaryTable.AddCell(new Cell()
+                    .Add(new Paragraph("Outstanding Due").SetFont(boldFont))
+                    .SetBorder(Border.NO_BORDER));
+
+                summaryTable.AddCell(new Cell()
+                    .Add(new Paragraph("₹ " + dto.DueFee.ToString("N0"))
+                    .SetFontColor(iText.Kernel.Colors.ColorConstants.RED)
+                    .SetFont(boldFont))
+                    .SetTextAlignment(iText.Layout.Properties.TextAlignment.RIGHT)
+                    .SetBorder(Border.NO_BORDER));
+
+                document.Add(summaryTable);
+
+                document.Add(new Paragraph("\n"));
+
+                // ================= FOOTER =================
+                document.Add(new Paragraph("Thank you for choosing CIIT Institute!")
+                    .SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER)
+                    .SetFontSize(10)
+                    .SetFontColor(iText.Kernel.Colors.ColorConstants.GRAY));
 
                 document.Close();
 
                 var pdfBytes = stream.ToArray();
-                var base64 = Convert.ToBase64String(pdfBytes);  
+                var base64 = Convert.ToBase64String(pdfBytes);
 
                 return Ok(base64);
             }
@@ -287,3 +367,4 @@ namespace ciit_api.Controllers
     }
 
 }
+    
