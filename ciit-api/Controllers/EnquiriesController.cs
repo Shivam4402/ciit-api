@@ -1,5 +1,6 @@
 ﻿using ciit_api.DTOs.Enquiry;
 using ciit_api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -91,6 +92,7 @@ namespace ciit_api.Controllers
             }
         }
 
+            [Authorize]
             [HttpPost]
             public async Task<IActionResult> CreateEnquiry([FromBody] CreateEnquiryDto dto)
             {
@@ -137,6 +139,7 @@ namespace ciit_api.Controllers
                 }
             }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEnquiry(int id, [FromBody] UpdateEnquiryDto dto)
         {
@@ -182,6 +185,8 @@ namespace ciit_api.Controllers
         }
 
         // DELETE (Hard Delete)
+
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEnquiry(int id)
         {

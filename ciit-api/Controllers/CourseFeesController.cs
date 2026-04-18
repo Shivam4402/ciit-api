@@ -1,16 +1,18 @@
 ﻿using ciit_api.DTOs.CourseFee;
 using ciit_api.Models;
+using iText.IO.Image;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Borders;
 using iText.Layout.Element;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using iText.Kernel.Pdf;
-using iText.Layout;
-using iText.IO.Image;
-using iText.Layout.Borders;
 
 namespace ciit_api.Controllers
 {
+    [Authorize]
     [Route("api/course-fees")]
     [ApiController]
     public class CourseFeesController : BaseApiController

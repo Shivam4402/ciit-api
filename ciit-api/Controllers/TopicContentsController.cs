@@ -1,11 +1,13 @@
 ﻿using ciit_api.DTOs.TopicContents;
 using ciit_api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace ciit_api.Controllers
 {
+    [Authorize]
     [Route("api/topic-contents")]
     [ApiController]
     public class TopicContentsController : BaseApiController

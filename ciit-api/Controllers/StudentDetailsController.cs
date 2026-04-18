@@ -1,12 +1,14 @@
 ﻿using ciit_api.Models;
 using ciit_api.Services.Implementations;
 using ciit_api.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace ciit_api.Controllers
 {
+    [Authorize]
     [Route("api/students")]
     [ApiController]
     public class StudentDetailsController : BaseApiController

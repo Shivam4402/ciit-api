@@ -1,9 +1,12 @@
 ﻿using ciit_api.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ciit_api.Controllers
 {
+
+    [Authorize]
     [Route("api/vimeo")]
     [ApiController]
     public class VimeoController : BaseApiController

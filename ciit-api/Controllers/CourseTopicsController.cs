@@ -1,11 +1,14 @@
 ﻿using ciit_api.DTOs.CourseTopic;
 using ciit_api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace ciit_api.Controllers
 {
+
+    [Authorize]
     [Route("api/course-topics")]
     [ApiController]
     public class CourseTopicsController : BaseApiController
