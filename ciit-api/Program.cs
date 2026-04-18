@@ -1,3 +1,4 @@
+using ciit_api.DTOs.Vimeo;
 using ciit_api.Models;
 using ciit_api.Services.Implementations;
 using ciit_api.Services.Interfaces;
@@ -69,6 +70,11 @@ builder.Services.AddDbContext<CiitstudContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
+
+// ---------- Vimeo Access Token ----------
+builder.Services.Configure<VimeoSettings>(
+    builder.Configuration.GetSection("Vimeo"));
+
 
 // ---------- JWT ----------
 

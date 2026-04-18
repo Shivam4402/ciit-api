@@ -1,11 +1,13 @@
 ﻿using ciit_api.DTOs.CourseVideo;
+using ciit_api.DTOs.Vimeo;
 using ciit_api.Services.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace ciit_api.Services.Implementations
 {
@@ -13,13 +15,18 @@ namespace ciit_api.Services.Implementations
     {
         private readonly HttpClient _httpClient;
         private readonly IMemoryCache _cache;
+        private readonly string _accessToken;
 
 
-        public VimeoService(HttpClient httpClient, IMemoryCache cache)
+
+        public VimeoService(HttpClient httpClient, IMemoryCache cache, IOptions<VimeoSettings> vimeoOptions)
         {
             _httpClient = httpClient;
             _cache = cache;
+            _accessToken = vimeoOptions.Value.AccessToken;
+
         }
+
 
         public async Task<List<VimeoVideoResponseDto>> GetVideosByFolderAsync(string folderId)
         {
@@ -41,7 +48,7 @@ namespace ciit_api.Services.Implementations
             );
 
             request.Headers.Authorization =
-                new AuthenticationHeaderValue("Bearer", "eac378a5725d5ecc750c63e0ee36e248");
+                new AuthenticationHeaderValue("Bearer", _accessToken);
 
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
