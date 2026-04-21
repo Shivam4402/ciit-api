@@ -114,7 +114,7 @@ builder.Services.AddCors(options =>
 });
 
 
-//builder.WebHost.UseUrls("http://0.0.0.0:5158");
+builder.WebHost.UseUrls("http://0.0.0.0:5158");
 
 
 var app = builder.Build();

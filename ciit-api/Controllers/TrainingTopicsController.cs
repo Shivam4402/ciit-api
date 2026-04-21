@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ciit_api.Controllers
 {
-    [Authorize]
     [Route("api/training-topics")]
     [ApiController]
     public class TrainingTopicsController : BaseApiController

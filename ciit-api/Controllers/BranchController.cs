@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ciit_api.Controllers
 {
-    [Authorize]
     [Route("api/branches")]
     [ApiController]
     public class BranchController : BaseApiController
