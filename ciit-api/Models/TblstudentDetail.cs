@@ -49,6 +49,8 @@ public partial class TblstudentDetail
 
     public virtual Tblbranch? Branch { get; set; }
 
+    public virtual ICollection<TblstudentExam> TblstudentExams { get; set; } = new List<TblstudentExam>();
+
     public virtual ICollection<TblstudentQualification> TblstudentQualifications { get; set; } = new List<TblstudentQualification>();
 
     public virtual ICollection<TblstudentRegistration> TblstudentRegistrations { get; set; } = new List<TblstudentRegistration>();

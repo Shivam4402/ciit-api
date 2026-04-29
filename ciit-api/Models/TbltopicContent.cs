@@ -13,5 +13,7 @@ public partial class TbltopicContent
 
     public int? Flag { get; set; }
 
+    public virtual ICollection<TblcontentQuestion> TblcontentQuestions { get; set; } = new List<TblcontentQuestion>();
+
     public virtual TbltrainingTopic? Topic { get; set; }
 }

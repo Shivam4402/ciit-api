@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ciit_api.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/course-fees")]
     [ApiController]
     public class CourseFeesController : BaseApiController

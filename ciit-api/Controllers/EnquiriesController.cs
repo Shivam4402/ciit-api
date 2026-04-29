@@ -92,7 +92,7 @@ namespace ciit_api.Controllers
             }
         }
 
-            [Authorize]
+            //[Authorize]
             [HttpPost]
             public async Task<IActionResult> CreateEnquiry([FromBody] CreateEnquiryDto dto)
             {
@@ -139,7 +139,7 @@ namespace ciit_api.Controllers
                 }
             }
 
-        [Authorize]
+        //[Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEnquiry(int id, [FromBody] UpdateEnquiryDto dto)
         {
@@ -186,7 +186,7 @@ namespace ciit_api.Controllers
 
         // DELETE (Hard Delete)
 
-        [Authorize]
+        //[Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEnquiry(int id)
         {

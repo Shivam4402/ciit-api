@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ciit_api.Controllers
 {
 
-    [Authorize]
+    //[Authorize]
     [Route("api/vimeo")]
     [ApiController]
     public class VimeoController : BaseApiController

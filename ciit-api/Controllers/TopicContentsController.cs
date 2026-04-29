@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ciit_api.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/topic-contents")]
     [ApiController]
     public class TopicContentsController : BaseApiController

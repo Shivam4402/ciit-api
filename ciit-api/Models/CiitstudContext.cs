@@ -21,6 +21,8 @@ public partial class CiitstudContext : DbContext
 
     public virtual DbSet<Tblbranch> Tblbranches { get; set; }
 
+    public virtual DbSet<TblcontentQuestion> TblcontentQuestions { get; set; }
+
     public virtual DbSet<Tblenquiry> Tblenquiries { get; set; }
 
     public virtual DbSet<TblenquiryFollowup> TblenquiryFollowups { get; set; }
@@ -32,6 +34,10 @@ public partial class CiitstudContext : DbContext
     public virtual DbSet<Tblqualification> Tblqualifications { get; set; }
 
     public virtual DbSet<TblstudentDetail> TblstudentDetails { get; set; }
+
+    public virtual DbSet<TblstudentExam> TblstudentExams { get; set; }
+
+    public virtual DbSet<TblstudentExamQuestion> TblstudentExamQuestions { get; set; }
 
     public virtual DbSet<TblstudentPayment> TblstudentPayments { get; set; }
 
@@ -99,6 +105,37 @@ public partial class CiitstudContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("branch_name");
+        });
+
+        modelBuilder.Entity<TblcontentQuestion>(entity =>
+        {
+            entity.HasKey(e => e.QuestionId).HasName("PK__tblconte__2EC21549D04A9D8E");
+
+            entity.ToTable("tblcontent_questions", "dbo");
+
+            entity.Property(e => e.QuestionId).HasColumnName("question_id");
+            entity.Property(e => e.ContentId).HasColumnName("content_id");
+            entity.Property(e => e.CorrectOptionNumber).HasColumnName("correct_option_number");
+            entity.Property(e => e.Flag).HasColumnName("flag");
+            entity.Property(e => e.Option1)
+                .IsUnicode(false)
+                .HasColumnName("option1");
+            entity.Property(e => e.Option2)
+                .IsUnicode(false)
+                .HasColumnName("option2");
+            entity.Property(e => e.Option3)
+                .IsUnicode(false)
+                .HasColumnName("option3");
+            entity.Property(e => e.Option4)
+                .IsUnicode(false)
+                .HasColumnName("option4");
+            entity.Property(e => e.Question)
+                .IsUnicode(false)
+                .HasColumnName("question");
+
+            entity.HasOne(d => d.Content).WithMany(p => p.TblcontentQuestions)
+                .HasForeignKey(d => d.ContentId)
+                .HasConstraintName("fkcontentid");
         });
 
         modelBuilder.Entity<Tblenquiry>(entity =>
@@ -355,6 +392,59 @@ public partial class CiitstudContext : DbContext
             entity.HasOne(d => d.Branch).WithMany(p => p.TblstudentDetails)
                 .HasForeignKey(d => d.BranchId)
                 .HasConstraintName("fkbranchstduentid");
+        });
+
+        modelBuilder.Entity<TblstudentExam>(entity =>
+        {
+            entity.HasKey(e => e.ExamId).HasName("PK__tblstude__9C8C7BE9271F7644");
+
+            entity.ToTable("tblstudent_exams", "dbo");
+
+            entity.Property(e => e.ExamId).HasColumnName("exam_id");
+            entity.Property(e => e.EndTime)
+                .HasColumnType("datetime")
+                .HasColumnName("end_time");
+            entity.Property(e => e.ExamDate)
+                .HasColumnType("datetime")
+                .HasColumnName("exam_date");
+            entity.Property(e => e.StartTime)
+                .HasColumnType("datetime")
+                .HasColumnName("start_time");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("status");
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.TopicId).HasColumnName("topic_id");
+            entity.Property(e => e.TotalQuestions).HasColumnName("total_questions");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.TblstudentExams)
+                .HasForeignKey(d => d.StudentId)
+                .HasConstraintName("fkdsduid");
+
+            entity.HasOne(d => d.Topic).WithMany(p => p.TblstudentExams)
+                .HasForeignKey(d => d.TopicId)
+                .HasConstraintName("fktpcontent");
+        });
+
+        modelBuilder.Entity<TblstudentExamQuestion>(entity =>
+        {
+            entity.HasKey(e => e.ExamQuestionId).HasName("PK__tblstude__27F8BFF8B053E526");
+
+            entity.ToTable("tblstudent_exam_questions", "dbo");
+
+            entity.Property(e => e.ExamQuestionId).HasColumnName("exam_question_id");
+            entity.Property(e => e.ExamId).HasColumnName("exam_id");
+            entity.Property(e => e.QuestionId).HasColumnName("question_id");
+            entity.Property(e => e.SubmittedOptionNumber).HasColumnName("submitted_option_number");
+
+            entity.HasOne(d => d.Exam).WithMany(p => p.TblstudentExamQuestions)
+                .HasForeignKey(d => d.ExamId)
+                .HasConstraintName("fskesdsdsdsdsdxamid");
+
+            entity.HasOne(d => d.Question).WithMany(p => p.TblstudentExamQuestions)
+                .HasForeignKey(d => d.QuestionId)
+                .HasConstraintName("fskexamquieid");
         });
 
         modelBuilder.Entity<TblstudentPayment>(entity =>

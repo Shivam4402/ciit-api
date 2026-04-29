@@ -13,6 +13,8 @@ public partial class TbltrainingTopic
 
     public string? Publicfolderid { get; set; }
 
+    public virtual ICollection<TblstudentExam> TblstudentExams { get; set; } = new List<TblstudentExam>();
+
     public virtual ICollection<TbltopicContent> TbltopicContents { get; set; } = new List<TbltopicContent>();
 
     public virtual ICollection<TbltrainingCourseTopic> TbltrainingCourseTopics { get; set; } = new List<TbltrainingCourseTopic>();
