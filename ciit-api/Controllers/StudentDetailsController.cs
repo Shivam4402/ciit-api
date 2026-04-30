@@ -467,6 +467,94 @@ namespace ciit_api.Controllers
 
 
 
+        [HttpGet("student-exam-report-by-student/{studentId:int}")]
+        public async Task<IActionResult> GetStudentExamReportByStudentId(int studentId)
+        {
+            try
+            {
+                if (studentId <= 0)
+                    return ApiResponse(false, "Invalid student id", statusCode: 400);
+
+                var registration = await _context.TblstudentRegistrations
+                    .AsNoTracking()
+                    .Where(r => r.StudentId == studentId
+                                && r.Flag == 0
+                                && r.Student != null
+                                && r.Student.Flag == 0)
+                    .OrderByDescending(r => r.RegistrationId)
+                    .Select(r => new
+                    {
+                        r.RegistrationId,
+                        r.StudentId,
+                        StudentName = r.Student!.StudentName
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (registration == null)
+                    return ApiResponse(false, "Student registration not found", statusCode: 404);
+
+                var examData = await _context.TblstudentExams
+                    .AsNoTracking()
+                    .Where(e => e.StudentId == registration.StudentId && e.Status == "Submitted")
+                    .Select(e => new
+                    {
+                        e.ExamId,
+                        e.ExamDate,
+                        e.StartTime,
+                        e.EndTime,
+                        e.TotalQuestions,
+                        TopicName = e.Topic != null ? e.Topic.TopicName : null,
+                        CorrectQuestions = e.TblstudentExamQuestions.Count(eq =>
+                            eq.SubmittedOptionNumber != null
+                            && eq.Question != null
+                            && eq.Question.CorrectOptionNumber != null
+                            && eq.SubmittedOptionNumber == eq.Question.CorrectOptionNumber),
+                        AttemptedQuestions = e.TblstudentExamQuestions.Count(eq =>
+                            eq.SubmittedOptionNumber != null
+                            && eq.Question != null
+                            && eq.Question.CorrectOptionNumber != null)
+                    })
+                    .OrderBy(e => e.ExamDate)
+                    .ToListAsync();
+
+                var result = examData.Select(e =>
+                {
+                    var total = e.TotalQuestions ?? e.AttemptedQuestions;
+                    var percentage = total == 0
+                        ? 0m
+                        : Math.Round((decimal)e.CorrectQuestions * 100m / total, 2);
+
+                    return new StudentExamReportDto
+                    {
+                        ExamId = e.ExamId,
+                        RegistrationId = registration.RegistrationId,
+                        StudentName = registration.StudentName,
+                        TopicName = e.TopicName,
+                        ExamDate = e.ExamDate,
+                        StartTime = e.StartTime?.ToString("h:mm:ss tt"),
+                        EndTime = e.EndTime?.ToString("h:mm:ss tt"),
+                        TotalQuestions = total,
+                        CorrectQuestions = e.CorrectQuestions,
+                        WrongQuestions = Math.Max(0, total - e.CorrectQuestions),
+                        Percentage = percentage,
+                        Grade = GetGrade(percentage)
+                    };
+                }).ToList();
+
+                if (result.Count == 0)
+                    return ApiResponse(false, "No exams found for this student", data: result, statusCode: 404);
+
+                return ApiResponse(true, "Student exam report fetched successfully", result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetStudentExamReportByStudentId {StudentId}", studentId);
+                return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
+            }
+        }
+
+
+
         [HttpGet("student-exam-report/{registrationId:int}")]
         public async Task<IActionResult> GetStudentExamReport(int registrationId)
         {
@@ -1014,6 +1102,237 @@ namespace ciit_api.Controllers
                 return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
             }
         }
+
+
+
+        [HttpPost("generate-course-certificate")]
+        public async Task<IActionResult> GenerateCourseCertificate([FromBody] StudentExamReportCertificateRequestDto dto)
+        {
+            try
+            {
+                if (dto == null || dto.StudentId <= 0)
+                    return ApiResponse(false, "Invalid student id", statusCode: 400);
+
+                var registration = await _context.TblstudentRegistrations
+                    .AsNoTracking()
+                    .Where(r => r.StudentId == dto.StudentId
+                                && r.Flag == 0
+                                && r.Student != null
+                                && r.Student.Flag == 0
+                                && r.Fee != null
+                                && r.Fee.Course != null)
+                    .Select(r => new
+                    {
+                        r.RegistrationId,
+                        r.StudentId,
+                        FirstName = r.Student!.StudentName,
+                        LastName = r.Student.LastName,
+                        Pin = r.Student.PermanentIdentificationNumber,
+                        CourseId = r.Fee!.CourseId,
+                        CourseName = r.Fee.Course!.CourseName
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (registration == null)
+                    return ApiResponse(false, "Registration or course not found", statusCode: 404);
+
+                var courseTopics = await _context.TbltrainingCourseTopics
+                    .AsNoTracking()
+                    .Where(ct => ct.CourseId == registration.CourseId
+                                 && ct.Flag == 0
+                                 && ct.Topic != null
+                                 && ct.Topic.Flag == 0
+                                 && ct.TopicId != null)
+                    .Select(ct => new
+                    {
+                        ct.TopicId,
+                        TopicName = ct.Topic!.TopicName
+                    })
+                    .ToListAsync();
+
+                if (courseTopics.Count == 0)
+                    return ApiResponse(false, "No topics mapped to this course", statusCode: 404);
+
+                var topicIds = courseTopics.Select(t => t.TopicId!.Value).ToList();
+
+                var examData = await _context.TblstudentExams
+                    .AsNoTracking()
+                    .Where(e => e.StudentId == registration.StudentId
+                                && e.Status == "Submitted"
+                                && e.TopicId != null)
+                    .Select(e => new
+                    {
+                        e.TopicId,
+                        TopicName = e.Topic != null ? e.Topic.TopicName : null,
+                        e.ExamDate,
+                        e.TotalQuestions,
+                        CorrectQuestions = e.TblstudentExamQuestions.Count(eq =>
+                            eq.SubmittedOptionNumber != null
+                            && eq.Question != null
+                            && eq.Question.CorrectOptionNumber != null
+                            && eq.SubmittedOptionNumber == eq.Question.CorrectOptionNumber),
+                        AttemptedQuestions = e.TblstudentExamQuestions.Count(eq =>
+                            eq.SubmittedOptionNumber != null
+                            && eq.Question != null
+                            && eq.Question.CorrectOptionNumber != null)
+                    })
+                    .ToListAsync();
+
+                var topicScores = examData
+                    .GroupBy(e => new { e.TopicId, e.TopicName })
+                    .Select(g =>
+                    {
+                        var latest = g.OrderByDescending(x => x.ExamDate).First();
+                        var total = latest.TotalQuestions ?? latest.AttemptedQuestions;
+                        var percentage = total == 0
+                            ? 0m
+                            : Math.Round((decimal)latest.CorrectQuestions * 100m / total, 2);
+
+                        return new
+                        {
+                            TopicName = latest.TopicName ?? "-",
+                            Percentage = percentage
+                        };
+                    })
+                    .ToList();
+
+                var overallPercentage = topicScores.Count == 0
+                    ? 0m
+                    : Math.Round(topicScores.Average(t => t.Percentage), 2);
+
+                var fullName = $"{registration.FirstName} {registration.LastName}".Trim();
+                var grade = GetGrade(overallPercentage);
+
+                using var stream = new MemoryStream();
+                var writer = new PdfWriter(stream);
+                var pdf = new PdfDocument(writer);
+                var document = new Document(pdf, PageSize.A4);
+
+                document.SetMargins(40, 40, 40, 40);
+
+                var page = pdf.AddNewPage();
+                var pageSize = page.GetPageSize();
+                var canvas = new PdfCanvas(page);
+                var boldFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+
+                canvas.SetLineWidth(1.5f);
+                canvas.RoundRectangle(10, 10, pageSize.GetWidth() - 20, pageSize.GetHeight() - 20, 20);
+                canvas.Stroke();
+
+                var logoPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "mainlogo.png");
+                if (System.IO.File.Exists(logoPath))
+                {
+                    var logo = new Image(ImageDataFactory.Create(logoPath))
+                        .ScaleToFit(80, 80)
+                        .SetFixedPosition(25, pageSize.GetHeight() - 90);
+
+                    document.Add(logo);
+                }
+
+                document.Add(new Paragraph("Certificate")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(16)
+                    .SetMarginTop(20));
+
+                document.Add(new Paragraph("\n"));
+
+                document.Add(new Paragraph("The Academic Council of CIIT")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(12));
+
+                document.Add(new Paragraph("Certifies that")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(12)
+                    .SetMarginTop(5));
+
+                document.Add(new Paragraph("\n"));
+
+                document.Add(new Paragraph(fullName)
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(18)
+                    .SetFont(boldFont)
+                    .SetMarginTop(15));
+
+                document.Add(new Paragraph("has completed the course")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(10)
+                    .SetMarginTop(5));
+
+                document.Add(new Paragraph(registration.CourseName)
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(14)
+                    .SetFont(boldFont)
+                    .SetMarginTop(5));
+
+                document.Add(new Paragraph("with grade")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(10)
+                    .SetMarginTop(5));
+
+                document.Add(new Paragraph(grade)
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(14)
+                    .SetFont(boldFont)
+                    .SetMarginTop(5));
+
+                document.Add(new Paragraph("\n\n"));
+
+                document.Add(new Paragraph("Director")
+                    .SetTextAlignment(TextAlignment.LEFT)
+                    .SetFontSize(9));
+
+                document.Add(new Paragraph("CIIT Training Institute Pvt Ltd")
+                    .SetTextAlignment(TextAlignment.LEFT)
+                    .SetFontSize(9));
+
+                document.Add(new LineSeparator(new SolidLine()).SetMarginTop(10));
+
+                document.Add(new Paragraph($"PIN: {registration.Pin ?? "-"}        Certificate No: CIIT{registration.RegistrationId}")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(9));
+
+                document.Add(new LineSeparator(new SolidLine()).SetMarginBottom(5));
+
+                var scoreTable = new Table(2).UseAllAvailableWidth().SetMarginTop(5);
+                scoreTable.AddHeaderCell(new Cell().Add(new Paragraph("Topic").SetFont(boldFont).SetFontSize(8)).SetBackgroundColor(new DeviceRgb(230, 230, 230)).SetTextAlignment(TextAlignment.CENTER));
+                scoreTable.AddHeaderCell(new Cell().Add(new Paragraph("Percentage").SetFont(boldFont).SetFontSize(8)).SetBackgroundColor(new DeviceRgb(230, 230, 230)).SetTextAlignment(TextAlignment.CENTER));
+
+                foreach (var t in topicScores)
+                {
+                    scoreTable.AddCell(new Paragraph(t.TopicName ?? "-").SetFontSize(8));
+                    scoreTable.AddCell(new Paragraph(t.Percentage.ToString("N2")).SetFontSize(8));
+                }
+
+                document.Add(scoreTable);
+
+                var legend = new Table(2).UseAllAvailableWidth().SetMarginTop(10);
+
+                legend.AddCell(new Cell().Add(new Paragraph("% Marks").SetFont(boldFont)).SetBorder(Border.NO_BORDER).SetTextAlignment(TextAlignment.CENTER));
+                legend.AddCell(new Cell().Add(new Paragraph("Interpretation").SetFont(boldFont)).SetBorder(Border.NO_BORDER).SetTextAlignment(TextAlignment.CENTER));
+
+                legend.AddCell(new Cell().Add(new Paragraph("50-59.9\n60-69.9\n70-79.9\n80-Above"))
+                    .SetBorder(Border.NO_BORDER)
+                    .SetTextAlignment(TextAlignment.CENTER));
+
+                legend.AddCell(new Cell().Add(new Paragraph("Satisfactory\nFair\nGood\nExcellent"))
+                    .SetBorder(Border.NO_BORDER)
+                    .SetTextAlignment(TextAlignment.CENTER));
+
+                document.Add(legend);
+
+                document.Close();
+
+                var base64 = Convert.ToBase64String(stream.ToArray());
+                return Ok(base64);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GenerateCourseCertificate {RegistrationId}", dto?.RegistrationId);
+                return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
+            }
+        }
+
+
 
     }
 }
