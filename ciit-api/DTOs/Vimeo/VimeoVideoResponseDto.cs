@@ -1,4 +1,4 @@
-﻿namespace ciit_api.DTOs.CourseVideo
+﻿namespace ciit_api.DTOs.Vimeo
 {
     public class VimeoVideoResponseDto
     {

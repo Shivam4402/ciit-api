@@ -38,6 +38,9 @@ namespace ciit_api.Controllers
                 return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
             }
         }
+
+
+
     }
 }
 

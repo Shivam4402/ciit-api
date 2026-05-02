@@ -1,5 +1,5 @@
-﻿using ciit_api.DTOs.CourseVideo;
-using ciit_api.DTOs.Vimeo;
+﻿using ciit_api.DTOs.Vimeo;
+using ciit_api.DTOs.Youtube;
 using ciit_api.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -26,6 +26,9 @@ namespace ciit_api.Services.Implementations
             _accessToken = vimeoOptions.Value.AccessToken;
 
         }
+
+   
+
 
 
         public async Task<List<VimeoVideoResponseDto>> GetVideosByFolderAsync(string folderId)

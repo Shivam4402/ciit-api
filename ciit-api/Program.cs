@@ -1,4 +1,5 @@
 using ciit_api.DTOs.Vimeo;
+using ciit_api.DTOs.Youtube;
 using ciit_api.Models;
 using ciit_api.Services.Implementations;
 using ciit_api.Services.Interfaces;
@@ -59,6 +60,7 @@ builder.Services.AddSwaggerGen(c =>
 // ---------- Services ----------
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddHttpClient<IVimeoService, VimeoService>();
+builder.Services.AddHttpClient<IYoutubeService, YoutubeService>();
 
 
 builder.Services.AddMemoryCache();
@@ -74,6 +76,11 @@ builder.Services.AddDbContext<CiitstudContext>(options =>
 // ---------- Vimeo Access Token ----------
 builder.Services.Configure<VimeoSettings>(
     builder.Configuration.GetSection("Vimeo"));
+
+// ---------- YouTube API Key ----------
+builder.Services.Configure<YouTubeSettings>(
+    builder.Configuration.GetSection("YouTube")
+);
 
 
 // ---------- JWT ----------
