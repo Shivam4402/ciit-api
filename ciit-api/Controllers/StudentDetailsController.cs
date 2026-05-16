@@ -143,6 +143,10 @@ namespace ciit_api.Controllers
         }
 
 
+
+
+
+
         [HttpGet("details/{studentId}")]
         public async Task<IActionResult> GetStudentDetailsById(int studentId)
         {
@@ -247,6 +251,10 @@ namespace ciit_api.Controllers
                 return ApiResponse(false, "Something went wrong", error: ex.Message, statusCode: 500);
             }
         }
+
+
+
+
 
 
         [HttpGet("student-wise-batches/{studentId}")]
